@@ -1,0 +1,27 @@
+version: "3.0"
+services:
+  web:
+    build:
+      context: ./web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./web:/usr/share/nginx/html
+  maxima:
+    image: mathinstitut/goemaxima:2024072400-latest
+    tmpfs:
+      - "/tmp"
+    restart: unless-stopped
+    cap_add:
+      - SETGID
+      - SETUID
+    cap_drop:
+      - ALL
+    environment:
+      GOEMAXIMA_QUEUE_LEN: 32
+    read_only: true
+  stack:
+    image: stackmaths/stackapi:2024072400-latest
+    restart: unless-stopped
+    ports:
+      - '3080:80'

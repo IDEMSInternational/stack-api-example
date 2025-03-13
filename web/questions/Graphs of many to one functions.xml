@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 125917  -->
+  <question type="stack">
+    <name>
+      <text>Graphs of many to one functions</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>(a) Consider the function \(k(x)={@text_fun_k@}\)
+<br>State two different values of \(x\) that would give the same value for \(k(x)\). </p>
+<p style="margin-left: 30px">\(x_1 =\) [[input:ans1]] [[validation:ans1]]</p>
+<p style="margin-left: 30px">\(x_2 =\) [[input:ans2]] [[validation:ans2]]</p>
+<p>[[feedback:prt1]]</p>
+
+<p>Therefore, the inverse of this function, \(k^{-1}(x)\) cannot exist because two values of \(x\) can give the same value for \(k(x)\). 
+<br>This is an example of a <b>many to one</b> function.</p>
+
+<br>
+
+<p>(b) Which one of these graphs also shows a many to one function that does not have an inverse?</p>
+<p style="margin-left: 30px"><b>Graph (1)</b></p>
+<p style="margin-left: 30px">{@
+plot(
+    [list_fun[gp[1]]],
+    [x, -lim_x[gp[1], type_perm[gp[1]]], lim_x[gp[1], type_perm[gp[1]]]],
+    [y,lim_y_bott[gp[1],type_perm[gp[1]]],lim_y_top[gp[1],type_perm[gp[1]]]], 
+    [box,false], 
+    [plottags,false],
+    [xtics, xtics_lim[gp[1],type_perm[gp[1]]], xtics_step[gp[1],type_perm[gp[1]]],-xtics_lim[gp[1],type_perm[gp[1]]]]
+)@}</p>
+
+<p style="margin-left: 30px"><b>Graph (2)</b></p>
+<p style="margin-left: 30px">{@
+plot(
+    [list_fun[gp[2]]],
+    [x,-lim_x[gp[2],type_perm[gp[2]]],lim_x[gp[2],type_perm[gp[2]]]],
+    [y,lim_y_bott[gp[2],type_perm[gp[2]]],lim_y_top[gp[2],type_perm[gp[2]]]], 
+    [box,false],
+    [plottags,false],
+    [xtics, xtics_lim[gp[2],type_perm[gp[2]]], xtics_step[gp[2],type_perm[gp[2]]],-xtics_lim[gp[2],type_perm[gp[2]]]]
+)@}</p>
+
+<p style="margin-left: 30px"><b>Graph (3)</b></p>
+<p style="margin-left: 30px">{@
+plot(
+    [list_fun[gp[3]]],
+    [x,-lim_x[gp[3],type_perm[gp[3]]],lim_x[gp[3],type_perm[gp[3]]]],
+    [y,lim_y_bott[gp[3],type_perm[gp[3]]],lim_y_top[gp[3],type_perm[gp[3]]]], 
+    [box,false],
+    [plottags,false],
+    [xtics, xtics_lim[gp[3],type_perm[gp[3]]], xtics_step[gp[3],type_perm[gp[3]]],-xtics_lim[gp[3],type_perm[gp[3]]]]
+)@}</p>
+
+<p style="margin-left: 30px">Graph number: [[input:ans3]] [[validation:ans3]]</p>
+<p>[[feedback:prt3]]</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<h3>Worked solution</h3>
+
+[[ if test="is(type_k=1)" ]]
+
+<p>(a) We can make use of the fact that \(x^2\) is an <b>even function</b> to determine two different values of \(x\) for which \({@coeff_k*x^2@}\) is the same.
+<br>In fact, for any value of \(x\) we have that \(x^2 = (-x)^2\).</p>
+
+<p>A particular answer could then be to take,</p>
+<p style="margin-left: 30px">\(x_1 = {@x1@}\)</p>
+<p style="margin-left: 30px">\(x_2 = -{@x1@}\)</p>
+
+<p>Then, we note in particular that,</p>
+<p style="margin-left: 30px">\({@coeff_k*x_1^2@} = {@coeff_k@} \cdot {@x1@}^2 = {@val_y@}\)</p> 
+<p style="margin-left: 30px">\({@coeff_k*x_2^2@} = {@coeff_k@} \cdot ({@x2@})^2 = {@val_y@}\)</p>
+
+<br>
+
+<p>Here is the graph of \( k(x) = {@coeff_k*x^2@} \) and you can see that both these values of \(x\) lead to the same value of \(k(x)\). </p>
+<p style="margin-left: 30px">{@plot(
+    [fun_k,val_y,[discrete,[[x1,val_y],[x2,val_y]]]],
+    [x,-5,5], 
+    [y,-1,val_y+6],
+    [box, false], 
+    [plottags,false],
+    [yx_ratio, 1],
+    [style,lines,lines,points],
+    [point_type,asterisk], 
+    [color, blue,red, red], 
+    [xtics, -4, 1, 4]
+)@}</p>
+
+[[ elif test="is(type_k=2)" ]]
+
+<p>(a) We can make use of the fact that \(x^4\) is an <b>even function</b> to determine two different values of \(x\) for which \({@coeff_k*x^4@}\) is the same.
+<br>In fact, for any value of \(x\) we have that \(x^4 = (-x)^4\).</p>
+
+<p>A particular answer could then be to take,</p>
+<p style="margin-left: 30px">\(x_1 = {@x1@}\)</p>
+<p style="margin-left: 30px">\(x_2 = -{@x1@}\)</p>
+
+<p>Then, we note in particular that,</p>
+<p style="margin-left: 30px">\({@coeff_k*x_1^4@} = {@coeff_k@} \cdot {@x1@}^4 = {@val_y@}\)</p> 
+<p style="margin-left: 30px">\({@coeff_k*x_2^4@} = {@coeff_k@} \cdot ({@x2@})^4 = {@val_y@}\)</p>
+
+<br>
+
+<p>Here is the graph of \( k(x) = {@coeff_k*x^4@} \) and you can see that both these values of \(x\) lead to the same value of \(k(x)\). </p>
+<p style="margin-left: 30px">{@plot(
+    [fun_k,val_y,[discrete,[[x1,val_y],[x2,val_y]]]],
+    [x,-5,5], 
+    [y,-1,val_y+6],
+    [box, false], 
+    [plottags,false],
+    [yx_ratio, 1],
+    [style,lines,lines,points],
+    [point_type,asterisk], 
+    [color, blue,red, red], 
+    [xtics, -4, 1, 4]
+)@}</p>
+
+[[ elif test="is(type_k=3)" ]]
+
+<p>(a) We can make use of the fact that \(\sin(x^\circ)\) has a <b>periodicity</b> of \(360^\circ\) to determine two different values of \(x\) for which \(\sin(x^\circ)\) is the same.
+<br>In fact, for any value of \(x\) we have that \(\sin(x^\circ) = \sin(x+360)^\circ\)</p>
+
+<p>A particular answer could then be to take,</p>
+<p style="margin-left: 30px">\(x_1 = {@x1@}^{\circ}\)</p>
+<p style="margin-left: 30px">\(x_2 = {@x1@}^{\circ}+360^{\circ} = {@x1+360@}^{\circ}\)</p>
+
+<p>Then, we note in particular that,</p>
+<p style="margin-left: 30px">\(\sin(x_1) = \sin({@x1@}^{\circ})={@val_y@}\)</p> 
+<p style="margin-left: 30px">\(\sin(x_2) = \sin({@x1+360@}^{\circ})={@val_y@}\)</p>
+
+<br>
+
+<p>Here is the graph of \( k(x)=\sin(x^{\circ}) \) and you can see that both these values of \(x\) lead to the same value of \(k(x)\). 
+<br>In fact, there are infinitely many values of \(x\) which give this same value of \(k(x)\).</p>
+<p style="margin-left: 30px">{@plot(
+    [fun_k,val_y,[discrete,[[x1,val_y],[x2,val_y]]]],
+    [x,-460,460], 
+    [y,-1.5,1.5],
+    [box, false],
+    [plottags,false],
+    [style,lines,lines,points],
+    [point_type,asterisk], 
+    [color, blue,red, red], 
+    [xtics, -450, 90,450])
+@}</p>
+
+[[ elif test="is(type_k=4)" ]]
+
+<p>(a) We can make use of the fact that \(\cos(x^\circ)\) has a <b>periodicity</b> of \(360^\circ\) to determine two different values of \(x\) for which \(\cos(x^\circ)\) is the same.
+<br>In fact, for any value of \(x\) we have that \(\cos(x^\circ) = \cos(x+360)^\circ\)</p>
+
+<p>A particular answer could then be to take,</p>
+<p style="margin-left: 30px">\(x_1 = {@x1@}^{\circ}\)</p>
+<p style="margin-left: 30px">\(x_2 = {@x1@}^{\circ}+360^{\circ} = {@x1+360@}^{\circ}\)</p>
+
+<p>Then, we note in particular that,</p>
+<p style="margin-left: 30px">\(\cos(x_1) = \cos({@x1@}^{\circ})={@val_y@}\)</p> 
+<p style="margin-left: 30px">\(\cos(x_2) = \cos({@x1+360@}^{\circ})={@val_y@}\)</p>
+
+<br>
+
+<p>Here is the graph of \( k(x)=\cos(x^{\circ}) \) and you can see that both these values of \(x\) lead to the same value of \(k(x)\). 
+<br>In fact, there are infinitely many values of \(x\) which give this same value of \(k(x)\).</p>
+<p style="margin-left: 30px">{@plot(
+    [fun_k,val_y,[discrete,[[x1,val_y],[x2,val_y]]]],
+    [x,-460,460], 
+    [y,-1.5,1.5], 
+    [box, false],
+    [plottags,false],
+    [style,lines,lines,points],
+    [point_type,asterisk], 
+    [color, blue,red, red], 
+    [xtics, -450, 90,450])
+@}</p>
+
+[[/ if ]]
+
+<br>
+
+<p>(b) A function is called "many to one" if there are multiple values of \(x\) which map to the same value of \(y\).
+<br>Graphically, a function is many to one if we can draw a <b>horizontal line</b> which intersects the function more than once.</p>
+<p>We can see that this is only possible for Graph {@ta3@}.</p>
+
+<br>
+
+<p>In the copy of graph {@ta3@} below, you can see two values of \(x\) that lead to the same value of \(y\). </p>
+
+<p style="margin-left: 30px">{@plot(
+    [fun_non_inv,val_yb,[discrete,[[x3,val_yb],[x4,val_yb]]]],
+    [x, if (type_non_inv=1) then -5 else -460, if (type_non_inv=1) then 5 else 460], 
+    [y, if (type_non_inv=1 or type_non_inv=5) then -5 else -2, if (type_non_inv=1 or type_non_inv=5) then 5 else 2], 
+    [box, false],
+    [plottags,false],
+    [plottags,false],
+    [style,lines,lines,points],
+    [point_type,asterisk], 
+    [color, blue,red, red]
+)@}</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.1</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <stackversion>
+      <text>2023060500</text>
+    </stackversion>
+    <questionvariables>
+      <text><![CDATA[/*types of NON-INVERTIBLE functions: 
+1= quadratic, 2=quartic, 3=sin, 4=cos, 5=tan*/
+
+type_k:rand(4)+1; /*should not be a tan*/
+type_non_inv:rand_with_prohib(1,5,[type_k,2]);
+
+/*types of INVERTIBLE functions:  
+1= linear, 2=cubic, 3=exponential*/
+
+type_inv1:rand(3)+1; 
+type_inv2:rand_with_prohib(1,3,[type_inv1]);
+
+/*define trigonometric functions in degrees*/
+sin_d(x):=sin(x*%pi/180);
+cos_d(x):=cos(x*%pi/180);
+tan_d(x):=tan(x*%pi/180);
+
+/* Part (a) */
+
+/*define function k(x)*/
+coeff_k:rand(3)+1;
+
+fun_k: if type_k=1 then 
+    coeff_k*x^2 
+  else if type_k=2 then 
+    coeff_k*x^4 
+  else if type_k=3 then 
+    sin_d(x) 
+  else if type_k=4 then 
+    cos_d(x); 
+
+text_fun_k: if type_k=1 then 
+    vconcat(if coeff_k>1 then coeff_k else "","x^2") 
+  else if type_k=2 then 
+    vconcat(if coeff_k>1 then coeff_k else "","x^4") 
+  else if type_k=3 then 
+    vconcat("\\","sin x^{","\\","circ}") 
+  else if type_k=4 then 
+    vconcat("\\","cos x^{","\\","circ}");
+
+/*define x1 and x2 such that k(x1)=k(x2)*/
+
+den:rand([2,3,4,6]);
+x1: if (type_k=1 or type_k=2) then (rand(3)+1) else 180/den;
+x2: if (type_k=1 or type_k=2) then -x1 else  x1+360;
+val_y: ev(fun_k,x=x1);
+
+/*define non-invertible function for part (b)*/
+fun_non_inv: if type_non_inv=1 then x^2 elseif type_non_inv=3 then sin_d(x) elseif type_non_inv=4 then cos_d(x) elseif type_non_inv=5 then tan_d(x);
+
+/* Part (b) */
+
+/*define 2 invertible functions for part (b)*/
+trasl:rand_with_step(-3,3,1);
+ang:rand_with_prohib(-5,5,[0]);
+base:rand(3)+2;
+fun_inv1:if type_inv1=1 then  ang*x+trasl elseif type_inv1=2 then x^3+trasl elseif type_inv1=3 then base^x;  
+fun_inv2:if type_inv2=1 then  ang*x+trasl elseif type_inv2=2 then x^3+trasl elseif type_inv2=3 then base^x;  
+
+/*permutation of graphs of part b so the answer it is not always in the same position*/
+list_fun:[fun_non_inv,fun_inv1,fun_inv2];
+gp:random_permutation([1,2,3]);
+
+ma3: [
+  [1, is(gp[1]=1)],
+  [2, is(gp[2]=1)],
+  [3, is(gp[3]=1)]
+];
+ta3: if gp[1]=1 then 1 
+  else if gp[2]=1 then 2 
+  else if gp[3]=1 then 3;
+
+/*limits for axes*/
+lim_x:matrix([5,5,400,400,400],[5,5,5,5,5],[5,5,5,5,5]);
+lim_y_bott:matrix([-1,-1,-2,-2,-5],[-5,-5,-1,0,0],[-5,-5,-1,0,0]);
+lim_y_top:matrix([5,5,2,2,5],[5,5,5,0,0],[5,5,5,0,0]);
+xtics_lim:matrix([-4,-4,-450,-450,-450],[-4,-4,-4,0,0],[-4,-4,-4,0,0]);
+xtics_step:matrix([1,1,90,90,90],[1,1,1,1,1],[1,1,1,1,1]);
+type_perm:[type_non_inv,type_inv1,type_inv2];
+
+/*define x3 and x4 such that fun_non_inv(x3)=fun_non_inv(x4)*/
+den_sc:rand([2,3,4,6]);
+den_tg:rand([1,3,4,6]);
+
+x3: if (type_non_inv=1 or type_non_inv=2) then (rand(3)+1) 
+  else if (type_non_inv=3 or type_non_inv=4) then 180/den_sc 
+  else 180/den_tg;
+x4: if (type_non_inv=1 or type_non_inv=2) then -x3 
+  elseif (type_non_inv=3 or type_non_inv=4) then x3+360 
+  else x3+180;
+
+
+val_yb:ev(fun_non_inv,x=x3);]]></text>
+    </questionvariables>
+    <specificfeedback format="html">
+      <text></text>
+    </specificfeedback>
+    <questionnote format="moodle_auto_format">
+      <text><![CDATA[<p>(a) \(k(x) ={@fun_k@}\)
+<br>\(x_1={@x1@}\) and \(x_2={@x2@}\)</p>
+
+<p>Non-invertible option: \(y ={@fun_non_inv@}\) type {@type_non_inv@}</p>
+<p>Invertible option 1: \(y ={@fun_inv1@}\) type {@type_inv1@}</p>
+<p>Invertible option 2: \(y ={@fun_inv2@}\) type {@type_inv2@}</p>
+<p>Graph number: {@ta3@}</p>]]></text>
+    </questionnote>
+    <questiondescription format="moodle_auto_format">
+      <text><![CDATA[<p id="author">Godfrey Wabwire</p>
+<p id="concept">NA</p>
+<p id="reviewer">Emmaculate Odhiambo</p>
+<p id="reviewer">Wastalas Motognon</p>
+<p id="description">Which one of the given graphs shows a many to one function that would not have an inverse?</p>]]></text>
+    </questiondescription>
+    <questionsimplify>1</questionsimplify>
+    <assumepositive>0</assumepositive>
+    <assumereal>0</assumereal>
+    <prtcorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:green;"><i class="fa fa-check"></i></span> Correct answer, well done.]]></text>
+    </prtcorrect>
+    <prtpartiallycorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:orange;"><i class="fa fa-adjust"></i></span> Your answer is partially correct.]]></text>
+    </prtpartiallycorrect>
+    <prtincorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:red;"><i class="fa fa-times"></i></span> Incorrect answer.]]></text>
+    </prtincorrect>
+    <decimals>.</decimals>
+    <scientificnotation>*10</scientificnotation>
+    <multiplicationsign>none</multiplicationsign>
+    <sqrtsign>1</sqrtsign>
+    <complexno>i</complexno>
+    <inversetrig>cos-1</inversetrig>
+    <logicsymbol>lang</logicsymbol>
+    <matrixparens>[</matrixparens>
+    <variantsselectionseed></variantsselectionseed>
+    <input>
+      <name>ans1</name>
+      <type>numerical</type>
+      <tans>x1</tans>
+      <boxsize>5</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>0</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>0</checkanswertype>
+      <mustverify>0</mustverify>
+      <showvalidation>0</showvalidation>
+      <options></options>
+    </input>
+    <input>
+      <name>ans2</name>
+      <type>numerical</type>
+      <tans>x2</tans>
+      <boxsize>5</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>0</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>0</checkanswertype>
+      <mustverify>0</mustverify>
+      <showvalidation>0</showvalidation>
+      <options></options>
+    </input>
+    <input>
+      <name>ans3</name>
+      <type>dropdown</type>
+      <tans>ma3</tans>
+      <boxsize>5</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>1</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>0</checkanswertype>
+      <mustverify>0</mustverify>
+      <showvalidation>0</showvalidation>
+      <options></options>
+    </input>
+    <prt>
+      <name>prt1</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text><![CDATA[/*Define function SF(n) that given a number n, returns the string "n" if not -1 and "" if n=1 */
+SF(n):= block([], if (n=1) then return("") else  return(n));
+
+
+val_y: ev(fun_k,x=x1);
+
+fpprintprec:3;
+float_trig(n) :=block([], if (type_k=1 or type_k=2) then return(n) else return(float(n)));]]></text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <description>Checks answers are not the same</description>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans1</sans>
+        <tans>ans2</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>0</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>The two values of \(x\) that you have given as an answer are the same.
+<br>Take care that the question asks for <b>distinct</b> values of \(x\) which give the same value for \(k(x)\).</p>]]></text>
+        </truefeedback>
+        <falsescoremode>=</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>5</falsenextnode>
+        <falseanswernote>prt1-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>5</name>
+        <description>Checks answers evaluate k(x) the same</description>
+        <answertest>AlgEquiv</answertest>
+        <sans>ev(fun_k,x=ans1)</sans>
+        <tans>ev(fun_k,x=ans2)</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>1</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-6-T</trueanswernote>
+        <truefeedback format="html">
+          <text></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt1-6-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>The two values of \(x\) which you have provided do not give the same value for \(k(x)\).
+<br>Indeed, we have that 
+<p style="margin-left: 30px">\(k({@ans1@})={@float_trig(ev(fun_k,x=ans1))@}\)</p>
+<p style="margin-left: 30px">\(k({@ans2@}) ={@float_trig(ev(fun_k,x=ans2))@}\)</p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+    <prt>
+      <name>prt3</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text></text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <description>Check correct answer</description>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans3</sans>
+        <tans>ta3</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>1</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt3-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text></text>
+        </truefeedback>
+        <falsescoremode>=</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt3-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>The function which you have chosen is in fact <b>one to one</b>.
+<br>So, every value of \(k(x)\) is mapped to by a unique value of \(x\).</p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+    <deployedseed>156243253</deployedseed>
+    <deployedseed>1862325301</deployedseed>
+    <deployedseed>164470579</deployedseed>
+    <deployedseed>1718274363</deployedseed>
+    <deployedseed>589879243</deployedseed>
+    <deployedseed>1125121475</deployedseed>
+    <deployedseed>825591073</deployedseed>
+    <deployedseed>1949881027</deployedseed>
+    <deployedseed>94766405</deployedseed>
+    <deployedseed>250274802</deployedseed>
+    <deployedseed>1028773147</deployedseed>
+    <deployedseed>1900884775</deployedseed>
+    <deployedseed>1448780698</deployedseed>
+    <deployedseed>1030259997</deployedseed>
+    <deployedseed>1549920387</deployedseed>
+    <deployedseed>681693256</deployedseed>
+    <deployedseed>1963822401</deployedseed>
+    <deployedseed>614415594</deployedseed>
+    <deployedseed>1060855011</deployedseed>
+    <deployedseed>1597769450</deployedseed>
+    <deployedseed>2335573</deployedseed>
+    <deployedseed>988240883</deployedseed>
+    <deployedseed>1809884895</deployedseed>
+    <deployedseed>2032047312</deployedseed>
+    <deployedseed>903511043</deployedseed>
+    <deployedseed>822692110</deployedseed>
+    <deployedseed>1424458793</deployedseed>
+    <deployedseed>86477938</deployedseed>
+    <deployedseed>528922614</deployedseed>
+    <deployedseed>1159699089</deployedseed>
+    <qtest>
+      <testcase>1</testcase>
+      <description>Test case assuming the teacher's input gets full marks.</description>
+      <testinput>
+        <name>ans1</name>
+        <value>x1</value>
+      </testinput>
+      <testinput>
+        <name>ans2</name>
+        <value>x2</value>
+      </testinput>
+      <testinput>
+        <name>ans3</name>
+        <value>first(mcq_correct(ma3))</value>
+      </testinput>
+      <expected>
+        <name>prt1</name>
+        <expectedscore>1.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt1-6-T</expectedanswernote>
+      </expected>
+      <expected>
+        <name>prt3</name>
+        <expectedscore>1.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt3-1-T</expectedanswernote>
+      </expected>
+    </qtest>
+  </question>
+
+</quiz>

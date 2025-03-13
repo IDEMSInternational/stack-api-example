@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 135193  -->
+  <question type="stack">
+    <name>
+      <text>Partial fraction decomposition 2(i)</text>
+    </name>
+    <questiontext format="moodle_auto_format">
+      <text><![CDATA[<p>Decompose into partial fractions:</p>
+<p>\(\displaystyle \frac{{@a1@}}{(x-{@a2@})(x+{@a3@})}=\) [[input:ans1]] [[validation:ans1]][[feedback:prt1]]</p>]]></text>
+    </questiontext>
+    <generalfeedback format="moodle_auto_format">
+      <text><![CDATA[<h3>Worked Solution</h3>
+<p>\(\displaystyle \frac{{@a1@}}{(x-{@a2@})(x+{@a3@})}=\frac{A}{x-{@a2@}}+\frac{B}{x+{@a3@}}\)</p>
+<p>\(\displaystyle {@eq_1@}\cdots\cdots (\ast) \)</p>
+<p>Put \(x={@a2@}\) in \((\ast)\) to get: </p>
+<p>\(\displaystyle {@a1@}=A({@a2@}+{@a3@}) \)</p>
+<p>\(\displaystyle {@a1@}=A({@a2+a3@}) \)</p>
+<p>\(\displaystyle {@eq_3@} \)</p>
+<p>Put \(x={@-a3@}\) in \((\ast)\) to get: </p>
+<p>\(\displaystyle {@a1@}=B({@-a3@}-{@a2@}) \)</p>
+<p>\(\displaystyle {@a1@}=B({@-a3-a2@}) \)</p>
+<p>\(\displaystyle {@eq_5@} \)</p>
+<p>Hence, \(\displaystyle \frac{{@a1@}}{(x-{@a2@})(x+{@a3@})}={@ta@}\)</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.1</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <stackversion>
+      <text>2023060500</text>
+    </stackversion>
+    <questionvariables>
+      <text>a1:rand(7)+1;
+a2:a1;
+a3:rand_with_prohib(1,7,[a1,a2]);
+eq_1:a1=A*(x+a3)+B*(x-a1);
+eq_2:subst(a1,x,eq_1);
+eq_3:solve(eq_2,A)[1];
+
+eq_4:subst(-a3,x,eq_1);
+eq_5:solve(eq_4,B)[1];
+ta1:rhs(eq_3)/(x-a1);
+ta2:rhs(eq_5)/(x+a3);
+ta:ta1+ta2;
+
+</text>
+    </questionvariables>
+    <specificfeedback format="html">
+      <text></text>
+    </specificfeedback>
+    <questionnote format="moodle_auto_format">
+      <text><![CDATA[<p>\(\displaystyle \frac{{@a1@}}{(x-{@a2@})(x+{@a3@})}={@ta@}\) </p>]]></text>
+    </questionnote>
+    <questiondescription format="html">
+      <text><![CDATA[<p id="author">Emmaculate Odhiambo</p>
+<p id="concept">https://docs.google.com/document/d/13UWhdWPK4bWqdchA1tGddrEWiE8RufAh_YLyLBftn3E/edit#heading=h.vy8x1tbmoha9</p>
+<p id="reviewer">Nixson Kiplagat</p>
+<p id="reviewer">Wastalas Motognon</p>
+<p id="description">Determining partial fraction decomposition</p>]]></text>
+    </questiondescription>
+    <questionsimplify>1</questionsimplify>
+    <assumepositive>0</assumepositive>
+    <assumereal>0</assumereal>
+    <prtcorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:green;"><i class="fa fa-check"></i></span> Correct answer, well done.]]></text>
+    </prtcorrect>
+    <prtpartiallycorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:orange;"><i class="fa fa-adjust"></i></span> Your answer is partially correct.]]></text>
+    </prtpartiallycorrect>
+    <prtincorrect format="html">
+      <text><![CDATA[<span style="font-size: 1.5em; color:red;"><i class="fa fa-times"></i></span> Incorrect answer.]]></text>
+    </prtincorrect>
+    <decimals>.</decimals>
+    <scientificnotation>*10</scientificnotation>
+    <multiplicationsign>none</multiplicationsign>
+    <sqrtsign>1</sqrtsign>
+    <complexno>i</complexno>
+    <inversetrig>cos-1</inversetrig>
+    <logicsymbol>lang</logicsymbol>
+    <matrixparens>[</matrixparens>
+    <variantsselectionseed></variantsselectionseed>
+    <input>
+      <name>ans1</name>
+      <type>algebraic</type>
+      <tans>ta</tans>
+      <boxsize>25</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>1</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>0</checkanswertype>
+      <mustverify>1</mustverify>
+      <showvalidation>3</showvalidation>
+      <options></options>
+    </input>
+    <prt>
+      <name>prt1</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text>/*Node 1: Checks for the correct answer*/</text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <description>Checks for the correct answer</description>
+        <answertest>EqualComAss</answertest>
+        <sans>ans1</sans>
+        <tans>ta</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>1</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text></text>
+        </truefeedback>
+        <falsescoremode>=</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt1-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+    </prt>
+    <deployedseed>1655284187</deployedseed>
+    <deployedseed>543165341</deployedseed>
+    <deployedseed>284742884</deployedseed>
+    <deployedseed>855794493</deployedseed>
+    <deployedseed>1870679075</deployedseed>
+    <deployedseed>911075040</deployedseed>
+    <deployedseed>1918073061</deployedseed>
+    <deployedseed>2060126000</deployedseed>
+    <deployedseed>989529326</deployedseed>
+    <deployedseed>781135824</deployedseed>
+    <deployedseed>1036176395</deployedseed>
+    <deployedseed>1013121988</deployedseed>
+    <deployedseed>785813695</deployedseed>
+    <deployedseed>806461852</deployedseed>
+    <deployedseed>62038636</deployedseed>
+    <deployedseed>1823333300</deployedseed>
+    <deployedseed>375757393</deployedseed>
+    <deployedseed>61872716</deployedseed>
+    <deployedseed>218246781</deployedseed>
+    <deployedseed>1481518238</deployedseed>
+    <deployedseed>91657281</deployedseed>
+    <deployedseed>1047161008</deployedseed>
+    <deployedseed>1741851562</deployedseed>
+    <deployedseed>866654637</deployedseed>
+    <deployedseed>1171576063</deployedseed>
+    <deployedseed>564395018</deployedseed>
+    <deployedseed>443345908</deployedseed>
+    <deployedseed>546101526</deployedseed>
+    <deployedseed>208852995</deployedseed>
+    <deployedseed>197338003</deployedseed>
+    <deployedseed>377003667</deployedseed>
+    <deployedseed>677317326</deployedseed>
+    <deployedseed>88206180</deployedseed>
+    <deployedseed>425524413</deployedseed>
+    <deployedseed>2113771688</deployedseed>
+    <deployedseed>562643159</deployedseed>
+    <deployedseed>1958327467</deployedseed>
+    <deployedseed>796201342</deployedseed>
+    <deployedseed>1627907682</deployedseed>
+    <deployedseed>1831438170</deployedseed>
+    <deployedseed>1083076593</deployedseed>
+    <deployedseed>907799878</deployedseed>
+    <deployedseed>511572705</deployedseed>
+    <deployedseed>1691923795</deployedseed>
+    <deployedseed>1752441595</deployedseed>
+    <deployedseed>1055126595</deployedseed>
+    <deployedseed>620467272</deployedseed>
+    <deployedseed>334461726</deployedseed>
+    <deployedseed>453674253</deployedseed>
+    <deployedseed>322895831</deployedseed>
+    <deployedseed>803124044</deployedseed>
+    <deployedseed>1323993789</deployedseed>
+    <deployedseed>701169775</deployedseed>
+    <deployedseed>1864753982</deployedseed>
+    <deployedseed>2143670259</deployedseed>
+    <deployedseed>689852317</deployedseed>
+    <deployedseed>1961062838</deployedseed>
+    <deployedseed>127116359</deployedseed>
+    <deployedseed>689430266</deployedseed>
+    <deployedseed>1968697473</deployedseed>
+    <deployedseed>1607349478</deployedseed>
+    <deployedseed>1967963624</deployedseed>
+    <deployedseed>893546072</deployedseed>
+    <deployedseed>1239330386</deployedseed>
+    <deployedseed>1463877855</deployedseed>
+    <deployedseed>1956422907</deployedseed>
+    <deployedseed>323159920</deployedseed>
+    <deployedseed>1102476774</deployedseed>
+    <deployedseed>1904824986</deployedseed>
+    <deployedseed>1761417927</deployedseed>
+    <deployedseed>1729517329</deployedseed>
+    <deployedseed>1550213660</deployedseed>
+    <deployedseed>1906076955</deployedseed>
+    <deployedseed>1209231462</deployedseed>
+    <deployedseed>81784554</deployedseed>
+    <deployedseed>1765187617</deployedseed>
+    <deployedseed>70889928</deployedseed>
+    <deployedseed>1764587998</deployedseed>
+    <qtest>
+      <testcase>1</testcase>
+      <description></description>
+      <testinput>
+        <name>ans1</name>
+        <value>ta</value>
+      </testinput>
+      <expected>
+        <name>prt1</name>
+        <expectedscore>1.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt1-1-T</expectedanswernote>
+      </expected>
+    </qtest>
+  </question>
+
+</quiz>
