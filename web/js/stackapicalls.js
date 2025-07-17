@@ -3,7 +3,7 @@ const inputPrefix = 'stackapi_input_';
 const feedbackPrefix = 'stackapi_fb_';
 const validationPrefix = 'stackapi_val_';
 // const xmlfiles = ['questions/calc.xml', 'questions/stack_jxg.binding-demo-4.4.xml'];
-const apiurl = '/stack-api';
+const apiUrl = '//localhost:3080';
 
 const stackstring = {
   "teacheranswershow_mcq":"A correct answer is: {$a->display}",
@@ -35,7 +35,7 @@ async function collectData(qfile, qname, qprefix) {
       };
     });
   // }
-  return res
+  return res;
 }
 
 // Get the different input elements by tag and return object with values.
@@ -71,7 +71,7 @@ function processNodes(res, nodes, qprefix) {
 function send(qfile, qname, qprefix) {
   const http = new XMLHttpRequest();
   // const url = window.location.origin + '/render';
-  const url = apiurl + '/render';
+  const url = apiUrl + '/render';
   http.open("POST", url, true);
   http.setRequestHeader('Content-Type', 'application/json');
   http.onreadystatechange = function() {
@@ -116,9 +116,10 @@ function send(qfile, qname, qprefix) {
         }
         // Convert Moodle plot filenames to API filenames.
         for (const [name, file] of Object.entries(json.questionassets)) {
-          question = question.replace(name, `plots/${file}`);
-          json.questionsamplesolutiontext = json.questionsamplesolutiontext.replace(name, `plots/${file}`);
-          correctAnswers = correctAnswers.replace(name, `plots/${file}`);
+          const plotUrl = getPlotUrl(file);
+          question = question.replace(name, plotUrl);
+          json.questionsamplesolutiontext = json.questionsamplesolutiontext.replace(name, plotUrl);
+          correctAnswers = correctAnswers.replace(name, plotUrl);
         }
 
         question = replaceFeedbackTags(question,qprefix);
@@ -188,7 +189,7 @@ function send(qfile, qname, qprefix) {
 function validate(element, qfile, qname, qprefix) {
   const http = new XMLHttpRequest();
   // const url = window.location.origin + '/validate';
-  const url = apiurl + '/validate';
+  const url = apiUrl + '/validate';
   http.open("POST", url, true);
   // Remove API prefix and subanswer id.
   const answerNamePrefixTrim = (qprefix+inputPrefix).length;
@@ -233,7 +234,7 @@ function validate(element, qfile, qname, qprefix) {
 function answer(qfile, qname, qprefix, seed) {
   const http = new XMLHttpRequest();
   // const url = window.location.origin + '/grade';
-  const url = apiurl + '/grade';
+  const url = apiUrl + '/grade';
   http.open("POST", url, true);
 
   if (!document.getElementById(`${qprefix+'output'}`).innerText) {
@@ -273,7 +274,7 @@ function answer(qfile, qname, qprefix, seed) {
         // Replace tags and plots in specific feedback and then display.
         if (json.specificfeedback) {
           for (const [name, file] of Object.entries(json.gradingassets)) {
-            json.specificfeedback = json.specificfeedback.replace(name, `plots/${file}`);
+            json.specificfeedback = json.specificfeedback.replace(name, getPlotUrl(file));
           }
           json.specificfeedback = replaceFeedbackTags(json.specificfeedback,qprefix);
           specificFeedbackElement.innerHTML = json.specificfeedback;
@@ -284,7 +285,7 @@ function answer(qfile, qname, qprefix, seed) {
         // Replace plots in tagged feedback and then display.
         for (let [name, fb] of Object.entries(feedback)) {
           for (const [name, file] of Object.entries(json.gradingassets)) {
-            fb = fb.replace(name, `plots/${file}`);
+            fb = fb.replace(name, getPlotUrl(file));
           }
           const elements = document.getElementsByName(`${qprefix+feedbackPrefix + name}`);
           if (elements.length > 0) {
@@ -355,8 +356,14 @@ function renameIframeHolders() {
 }
 
 function createIframes (iframes) {
+  const corsFragment = "/cors.php?name=";
+
   for (const iframe of iframes) {
-    create_iframe(...iframe);
+    create_iframe(
+      iframe[0],
+      iframe[1].replaceAll(corsFragment, apiUrl + corsFragment),
+      ...iframe.slice(2)
+    );
   }
 }
 
@@ -382,7 +389,7 @@ async function getQuestionFile(questionURL, questionName) {
           res = loadQuestionFromFile(result, questionName);
         });
   }
-  return res
+  return res;
 }
 
 function loadQuestionFromFile(fileContents, questionName) {
@@ -458,7 +465,7 @@ function createQuestionBlocks() {
 function addCollapsibles(){
   var collapsibles = document.querySelectorAll(".level2>h2, .stack>h2");
   for (let i=0; i<collapsibles.length; i++) {
-    collapsibles[i].addEventListener("click", function(){collapseFunc(this)});
+    collapsibles[i].addEventListener("click", () => collapseFunc(this));
   }
 }
 
@@ -469,4 +476,8 @@ function collapseFunc(e){
 function stackSetup(){
   createQuestionBlocks();
   addCollapsibles();
+}
+
+function getPlotUrl(file) {
+  return `${apiUrl}/plots/${file}`;
 }

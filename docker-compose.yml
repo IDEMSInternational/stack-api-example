@@ -1,8 +1,8 @@
-version: "3.0"
 services:
   web:
     build:
       context: ./web
+    image: idems/stack-api-example:latest
     ports:
       - "8080:80"
     volumes:
@@ -21,7 +21,9 @@ services:
       GOEMAXIMA_QUEUE_LEN: 32
     read_only: true
   stack:
-    image: stackmaths/stackapi:2024072400-latest
+    image: idems/stackapi:latest
+    build:
+      context: ./stackapi
     restart: unless-stopped
     ports:
-      - '3080:80'
+      - "3080:80"
