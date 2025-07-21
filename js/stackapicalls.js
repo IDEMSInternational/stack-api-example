@@ -3,7 +3,7 @@ const inputPrefix = 'stackapi_input_';
 const feedbackPrefix = 'stackapi_fb_';
 const validationPrefix = 'stackapi_val_';
 // const xmlfiles = ['questions/calc.xml', 'questions/stack_jxg.binding-demo-4.4.xml'];
-const apiUrl = '//localhost:3080';
+const apiUrl = 'https://stackapi-1-43834256136.europe-west1.run.app';
 
 const stackstring = {
   "teacheranswershow_mcq":"A correct answer is: {$a->display}",

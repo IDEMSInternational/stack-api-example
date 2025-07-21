@@ -1,12 +1,15 @@
 services:
   web:
     build:
-      context: ./web
+      context: .
+      dockerfile: web/Dockerfile
     image: idems/stack-api-example:latest
     ports:
       - "8080:80"
     volumes:
-      - ./web:/usr/share/nginx/html
+      - ./index.html:/usr/share/nginx/html/index.html
+      - ./js:/usr/share/nginx/html/js
+      - ./questions:/usr/share/nginx/html/questions
   maxima:
     image: mathinstitut/goemaxima:2024072400-latest
     tmpfs:
@@ -22,8 +25,7 @@ services:
     read_only: true
   stack:
     image: idems/stackapi:latest
-    build:
-      context: ./stackapi
+    build: ./stackapi
     restart: unless-stopped
     ports:
       - "3080:80"
