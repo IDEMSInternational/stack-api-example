@@ -1,0 +1,709 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 213819  -->
+  <question type="stack">
+    <name>
+      <text>Détermination de la moyenne, maximum et minimum</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<p>Une expérience a été réalisée pour tester l'effet de deux traitements sur le rendement. Les deux traitements sont l'engrais et la variété. Il y a trois niveaux d'engrais et deux variétés différentes.</p>
+<p>La tâche consiste à utiliser les données ci-dessous pour répondre aux questions suivantes afin d'étudier l'incidence des traitements sur le rendement.</p>
+<p>Téléchargez la base de données <a href="[[textdownload name="data.csv"]]{@stack_csv_formatter(data_set,headers)@}[[/textdownload]]">ici</a>.</p>
+<p>1. Quel est le rendement  {@quest_expr1@} ? Donner la réponse à \(2\text{ chiffres après le virgule}\)</p>
+<p>[[input:ans1]] [[validation:ans1]]</p>
+<p>[[feedback:prt1]]</p>
+<p>2. Quel est le rendement {@quest_expr2@} Pour la Variété \(1\)? Donner la réponse à \(2\text{ chiffres après la virgule}\)</p>
+<p>[[input:ans2]] [[validation:ans2]]</p>
+<p>[[feedback:prt2]]</p>
+<p>3. Quel est le rendement {@quest_expr3@} pour la Variété \(1\) lorsque le fertiliseur \(1\) est utilisé? Donner la réponse à \(2\text{ chiffres après la virgule}\)</p>
+<p>[[input:ans3]] [[validation:ans3]]</p>
+<p>[[feedback:prt3]]</p>]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<p>Tous les détails sur la création et l'utilisation des tableaux croisés dynamiques sont disponibles. <a href="https://docs.google.com/document/d/1Q349NXt0AkStgVHHVkkDGBZVS-KT5Gl_IcdnSTemhEQ/edit?usp=sharing" target="_blank" rel="noopener">here</a>.</p>]]></text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>0.1</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <stackversion>
+      <text>2025012100</text>
+    </stackversion>
+    <questionvariables>
+      <text><![CDATA[/*Information given by question authors*/
+factor_names:["Fertiliser","Variety"];
+factors_info:[
+    [[0,"Fertiliser 1"],[5,"Fertiliser 2"],[7.5,"Fertiliser 3"]],
+    [[0,"Variety 1"],[10,"Variety 2"]]
+];
+base_yield:50;
+error_mean:0;
+error_sd:5;
+replications:10;
+
+/*Basic variables from inputs*/
+number_factors:length(factors_info);
+number_rows:product(length(factors_info[i]),i,1,length(factors_info))*replications;
+
+/*Function to calculate the yield for a given data row*/
+/*Input: list of coordinates for each factor*/
+/*Output: expected yield for the given combination of factors without interactions*/
+effect_calculator(coords):=block(
+    [
+        factors_info:factors_info,
+        counter_1,
+        effects_sum
+    ],
+    effects_sum:sum(factors_info[counter_1][coords[counter_1]][1],counter_1,1,length(factors_info)),
+    return(effects_sum)
+);
+
+/*Function to create the labels for a given data row*/
+/*Input: List of coordinates for each factor*/
+/*Output: list of labels for the given combination of factors without interactions*/
+create_label(coords):=block(
+    [
+        factors_info:factors_info,
+        number_factors:number_factors,
+        i,
+        label_maker
+    ],
+    label_maker:makelist(factors_info[i][coords[i]][2],i,1,number_factors),
+    return(label_maker)
+);
+
+/* Function to map position of item in list to coordinates in data list */
+/* Input: position of item in list, number between 1 and number_rows */
+/* Output: relevant coordinates in factors_info list */
+pos_to_coords(num):=block(
+    [factors_info:factors_info, 
+    number_factors:number_factors,
+    number_rows:number_rows,
+    factor_lengths,
+    clock],
+    factor_lengths: makelist(length(factors_info[i]),i,1,number_factors),
+    /* How regularly is each factor required to change value? */
+    clock:reverse(makelist(
+        product(factor_lengths[j], j, number_factors+1-i, number_factors),
+        i,
+        0,
+        number_factors-1
+    )),
+    return(makelist(mod(floor((num-1)/clock[i]),factor_lengths[i])+1, i, 1, number_factors))
+);
+
+/*Create the data set (all 0s) and the corresponding coordinates list*/
+data_set:makelist(makelist(0,j,1,number_factors+2),i,1,number_rows);
+coord_list:makelist(0,i,1,number_rows);
+
+/*replce 0s with corresponding labels and generated yields (plus error term) using the relevant functions*/
+for i: 1 thru number_rows do (
+    coords: pos_to_coords(ceiling(i/replications)),
+    coord_list[i]: coords,
+    yield_value: float(base_yield + effect_calculator(coords) + quantile_normal(rand(1.0),error_mean,error_sd)),
+    label_value: create_label(coords),
+    rep_value: if mod(i,replications) = 0 then replications else mod(i,replications),
+    data_set[i]: append(label_value, [rep_value], [yield_value])
+);
+
+headers: append(factor_names, ["Replication", "Yield"]);
+
+/* Add headers row to data set */
+data_set_hd:append(
+    [headers],
+    data_set
+);
+
+/* question 1 */
+quest_expr1:rand(["moyen","minimum","maximum"]);
+all_yields: makelist(data_set_hd[i][4], i, 2, number_rows+1);
+ta_1: decimalplaces(if quest_expr1="moyen" then mean(all_yields)
+    else if quest_expr1="minimum" then first(sort(all_yields))
+    else if quest_expr1="maximum" then last(sort(all_yields))
+    else if quest_expr1="median" then median(all_yields), 2);
+
+/* question 2 */
+quest_expr2:rand(["moyen","minimum","maximum"]);
+var1_list: sublist(data_set_hd, lambda([x], is(x[2]="Variety 1")));
+var1_yields: makelist(var1_list[i][4], i, 1, length(var1_list));
+
+ta_2: decimalplaces(if quest_expr2="moyen" then mean(var1_yields)
+    else if quest_expr2="minimum" then first(sort(var1_yields))
+    else if quest_expr2="maximum" then last(sort(var1_yields))
+    else if quest_expr2="median" then median(var1_yields), 2);
+
+/* question 3 */
+quest_expr3:rand(["moyen","minimum","maximum"]);
+fert1_var1_list: sublist(var1_list, lambda([x], is(x[1]="Fertiliser 1")));
+fert1_var1_yields: makelist(fert1_var1_list[i][4], i, 1, length(fert1_var1_list));
+
+ta_3: decimalplaces(if quest_expr3="moyen" then mean(fert1_var1_yields)
+    else if quest_expr3="minimum" then first(sort(fert1_var1_yields))
+    else if quest_expr3="maximum" then last(sort(fert1_var1_yields))
+    else if quest_expr3="median" then median(fert1_var1_yields), 2);]]></text>
+    </questionvariables>
+    <specificfeedback format="html">
+      <text></text>
+    </specificfeedback>
+    <questionnote format="moodle_auto_format">
+      <text><![CDATA[<p>What is the {@quest_expr1@} yield? Give to \(2\text{dp}\) = {@ta_1@}</p>
+<p>What is the {@quest_expr2@} yield for Variety \(1\)? = {@ta_2@}</p>
+<p>What is the {@quest_expr3@} yield for Variety \(1\) when Fertiliser \(1\) is used? = {@ta_3@} </p>]]></text>
+    </questionnote>
+    <questiondescription format="html">
+      <text><![CDATA[<p id="author">Mary Sayuni</p>
+<p id="concept">https://docs.google.com/document/d/1M1PSU_3ENRT4V35PLR4JsBVKLyTa6S3InVDAW4Hsqwg/edit#heading=h.vy8x1tbmoha9</p>
+<p id="reviewer">Dan Kelly</p>
+<p id="reviewer"></p>
+<p id="description"></p>]]></text>
+    </questiondescription>
+    <questionsimplify>1</questionsimplify>
+    <assumepositive>0</assumepositive>
+    <assumereal>0</assumereal>
+    <prtcorrect format="html">
+      <text><![CDATA[<p><i class="fa fa-check"></i> Réponse correcte, bravo.</p>]]></text>
+    </prtcorrect>
+    <prtpartiallycorrect format="html">
+      <text><![CDATA[<p><i class="fa fa-adjust"></i> Votre réponse est partiellement correcte.</p>]]></text>
+    </prtpartiallycorrect>
+    <prtincorrect format="html">
+      <text><![CDATA[<p><i class="fa fa-times"></i> Réponse incorrecte.</p>]]></text>
+    </prtincorrect>
+    <decimals>.</decimals>
+    <scientificnotation>*10</scientificnotation>
+    <multiplicationsign>dot</multiplicationsign>
+    <sqrtsign>1</sqrtsign>
+    <complexno>i</complexno>
+    <inversetrig>cos-1</inversetrig>
+    <logicsymbol>lang</logicsymbol>
+    <matrixparens>[</matrixparens>
+    <isbroken>0</isbroken>
+    <variantsselectionseed></variantsselectionseed>
+    <input>
+      <name>ans1</name>
+      <type>algebraic</type>
+      <tans>ta_1</tans>
+      <boxsize>10</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>0</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>0</checkanswertype>
+      <mustverify>1</mustverify>
+      <showvalidation>3</showvalidation>
+      <options></options>
+    </input>
+    <input>
+      <name>ans2</name>
+      <type>algebraic</type>
+      <tans>ta_2</tans>
+      <boxsize>10</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>0</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>0</checkanswertype>
+      <mustverify>1</mustverify>
+      <showvalidation>3</showvalidation>
+      <options></options>
+    </input>
+    <input>
+      <name>ans3</name>
+      <type>algebraic</type>
+      <tans>ta_3</tans>
+      <boxsize>10</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>0</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>0</checkanswertype>
+      <mustverify>1</mustverify>
+      <showvalidation>3</showvalidation>
+      <options></options>
+    </input>
+    <prt>
+      <name>prt1</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text>/* node 3: check different summary statistic given */
+all_summaries: [
+    decimalplaces(mean(all_yields),2),
+    decimalplaces(first(sort(all_yields)),2),
+    decimalplaces(last(sort(all_yields)),2),
+    decimalplaces(median(all_yields),2)
+];
+node3_test: if member(ans1, all_summaries) then 1 else 0;</text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <description></description>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans1</sans>
+        <tans>ta_1</tans>
+        <testoptions>2</testoptions>
+        <quiet>1</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>1</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Vous avez correctement trouvé le rendement {@quest_expr1@}.</p>]]></text>
+        </truefeedback>
+        <falsescoremode>=</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>1</falsenextnode>
+        <falseanswernote>prt1-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>1</name>
+        <description></description>
+        <answertest>NumAbsolute</answertest>
+        <sans>ans1</sans>
+        <tans>ta_1</tans>
+        <testoptions>0.01</testoptions>
+        <quiet>1</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>0.5</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-2-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Votre réponse est correcte, mais il convient de noter que la question précise qu'il faut donner à \(2\text{ chiffres après la virgule}\).</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>2</falsenextnode>
+        <falseanswernote>prt1-2-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>2</name>
+        <description></description>
+        <answertest>AlgEquiv</answertest>
+        <sans>node3_test</sans>
+        <tans>1</tans>
+        <testoptions></testoptions>
+        <quiet>1</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>0</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-3-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Pas tout à fait, la question demandant le rendement<strong> {@quest_expr1@}</strong>. <br>Dans un tableau croisé dynamique Excel, cette opération peut être réalisée en cliquant sur la variable de rendement dans le champ « Valeurs » et en sélectionnant « Paramètres du champ de valeurs... ».<br>Voir <a href="“https://ecampus.idems.international/course/view.php?id=238&amp;section=38”">here</a> par exemple sur Excel.</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt1-3-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>Pas tout à fait. Les tableaux croisés dynamiques (PivotTables) permettent d'obtenir ce résultat de manière très satisfaisante dans les tableurs.<br>Ici, nous n'avons qu'une seule variable, le rendement, dont nous voulons examiner le résumé. Il nous suffit donc d'entrer « Rendement » dans la case « Valeur » et de sélectionner la statistique appropriée.</p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+    <prt>
+      <name>prt2</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text><![CDATA[/* node 3: check different summary statistic given */
+all_var1_summaries: [
+    decimalplaces(mean(var1_yields),2),
+    decimalplaces(first(sort(var1_yields)),2),
+    decimalplaces(last(sort(var1_yields)),2),
+    decimalplaces(median(var1_yields),2)
+];
+node3_test: if member(ans1, all_var1_summaries) then 1 else 0;
+
+/* node 4: check summary statistic taken over all data */
+node4_mist: decimalplaces(if quest_expr2="mean" then mean(all_yields)
+    else if quest_expr2="minimum" then first(sort(all_yields))
+    else if quest_expr2="maximum" then last(sort(all_yields))
+    else if quest_expr2="median" then median(all_yields), 2);]]></text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <description></description>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans2</sans>
+        <tans>ta_2</tans>
+        <testoptions>2</testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>1</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt2-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Vous avez correctement trouvé le {@quest_expr2@} rendement pour la variété \(1\).</p>]]></text>
+        </truefeedback>
+        <falsescoremode>=</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>1</falsenextnode>
+        <falseanswernote>prt2-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>1</name>
+        <description></description>
+        <answertest>NumAbsolute</answertest>
+        <sans>ans1</sans>
+        <tans>ta_2</tans>
+        <testoptions>0.01</testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>0.5</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt2-2-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Votre réponse est correcte, mais notez que la question indiquait de donner à  \(2\text{ chiffres après la virgule}\).</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>2</falsenextnode>
+        <falseanswernote>prt2-2-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>2</name>
+        <description></description>
+        <answertest>AlgEquiv</answertest>
+        <sans>node3_test</sans>
+        <tans>1</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>0</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt2-3-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Pas tout à fait, la question demandant le rendement<strong> {@quest_expr2@}</strong>. <br>Dans un tableau croisé dynamique Excel, cette opération peut être réalisée en cliquant sur la variable de rendement dans le champ « Valeurs » et en sélectionnant « Paramètres du champ de valeurs... ».</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>3</falsenextnode>
+        <falseanswernote>prt2-3-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>3</name>
+        <description></description>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans2</sans>
+        <tans>node4_mist</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt2-4-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Bravo, vous avez correctement trouvé le rendement {@quest_expr2@} global. Mais nous voulons aussi nous pencher sur la question sur la Variété \(1\) avec le fertiliseur \(1\). <br>Cela peut être réalisé en utilisant le champ « Filtre », « Lignes » ou « Colonnes » si vous y placez la variable « Variété ».</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt2-4-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>Pas tout à fait. Les tableaux croisés dynamiques (PivotTables) permettent d'atteindre cet objectif dans un logiciel de feuille de calcul de manière tout à fait satisfaisante.<br>Ici, la variable « Variété » doit être glissée dans les lignes ou les colonnes parce que nous sommes intéressés par le rendement maximal de la variété 1. Nous n'avons qu'une seule variable, le rendement, dont nous voulons voir le résumé. Il nous suffit donc d'entrer « Rendement » dans la case « Valeur » et de sélectionner la statistique appropriée.</p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+    <prt>
+      <name>prt3</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text><![CDATA[/* node 3: check different summary statistic given */
+all_fert1_var1_summaries: [
+    decimalplaces(mean(fert1_var1_yields),2),
+    decimalplaces(first(sort(fert1_var1_yields)),2),
+    decimalplaces(last(sort(fert1_var1_yields)),2),
+    decimalplaces(median(fert1_var1_yields),2)
+];
+node3_test: if member(ans1, all_fert1_var1_summaries) then 1 else 0;
+
+/* node 4: check summary statistic taken over all data */
+node4_mist: decimalplaces(if quest_expr3="mean" then mean(all_yields)
+    else if quest_expr3="minimum" then first(sort(all_yields))
+    else if quest_expr3="maximum" then last(sort(all_yields))
+    else if quest_expr3="median" then median(all_yields), 2);
+
+/* node 5: check for statistics of variety 1 with fertiliser 2 */
+fert2_var1_list: sublist(var1_list, lambda([x], is(x[1]="Fertiliser 2")));
+fert2_var1_yields: makelist(fert1_var1_list[i][4], i, 1, length(fert2_var1_list));
+
+node5_mist: decimalplaces(if quest_expr3="mean" then mean(fert2_var1_yields)
+    else if quest_expr3="minimum" then first(sort(fert2_var1_yields))
+    else if quest_expr3="maximum" then last(sort(fert2_var1_yields))
+    else if quest_expr3="median" then median(fert2_var1_yields), 2);]]></text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <description></description>
+        <answertest>NumDecPlaces</answertest>
+        <sans>ans3</sans>
+        <tans>ta_3</tans>
+        <testoptions>2</testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>1</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt3-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Vous avez correctement trouvé le rendement {@quest_expr3@} pour la variété \(1\) avec le fertiliseur \(1\).</p>]]></text>
+        </truefeedback>
+        <falsescoremode>=</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>1</falsenextnode>
+        <falseanswernote>prt3-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>1</name>
+        <description></description>
+        <answertest>NumAbsolute</answertest>
+        <sans>ans3</sans>
+        <tans>ta_3</tans>
+        <testoptions>0.01</testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>0.5</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt3-2-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Votre réponse est correcte, mais notez que la question indiquait de donner à \(2\text{ chiffres après la virgule}\).</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>2</falsenextnode>
+        <falseanswernote>prt3-2-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>2</name>
+        <description></description>
+        <answertest>AlgEquiv</answertest>
+        <sans>node_3</sans>
+        <tans>true</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>0</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt3-3-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Pas tout à fait, la question demandant le rendement<strong> {@quest_expr3@}</strong>. <br>Dans un tableau croisé dynamique Excel, cette opération peut être réalisée en cliquant sur la variable de rendement dans le champ « Valeurs » et en sélectionnant « Paramètres du champ de valeurs... ».</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>3</falsenextnode>
+        <falseanswernote>prt3-3-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>3</name>
+        <description></description>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans3</sans>
+        <tans>node4_mist</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt3-4-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Bravo, vous avez correctement trouvé le rendement {@quest_expr3@} global. Mais nous voulons aussi nous pencher sur la Variété \(1\) avec le fertiliseur \(1\). <br>Ceci peut être réalisé en utilisant le champ « Filter », « Rows » ou « Columns » si vous mettez à la fois les variables « Variety » et « Fertiliser ». La lecture peut être plus claire si vous placez les deux variables dans des champs différents (par exemple, l'un dans « Rows », l'autre dans « Columns »).</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>4</falsenextnode>
+        <falseanswernote>prt3-4-F</falseanswernote>
+        <falsefeedback format="html">
+          <text></text>
+        </falsefeedback>
+      </node>
+      <node>
+        <name>4</name>
+        <description></description>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans3</sans>
+        <tans>node5_mist</tans>
+        <testoptions></testoptions>
+        <quiet>0</quiet>
+        <truescoremode>+</truescoremode>
+        <truescore>0</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt3-5-T</trueanswernote>
+        <truefeedback format="html">
+          <text><![CDATA[<p>Presque ! Mais il semble que vous ayez pris en compte le rendement {@quest_expr3@} pour la Variété \(1\) lorsque  le <strong>Fertiliseur \(2\)</strong> est utilisé, alors que vous auriez dû considérer le résultat lorsque le Fertiliseur \(1\) est utilisé.</p>]]></text>
+        </truefeedback>
+        <falsescoremode>-</falsescoremode>
+        <falsescore>0</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt3-5-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>Pas tout à fait. Il est possible d'y parvenir dans un tableur avec les tableaux croisés dynamiques.<br>Ici, nous voulons voir le résumé du rendement. Il nous suffit donc de saisir « Rendement » dans la case « Valeur » et de sélectionner la statistique appropriée.<br>Nous voulons examiner le résumé pour Variété \(1\) et Fertilisant \(1\). Pour ce faire, vous pouvez utiliser les champs « Filtre », « Lignes » ou « Colonnes » si vous entrez les variables « Variété » et « Engrais ». La lecture peut être plus claire si vous placez les deux variables dans des champs différents (par exemple, l'une dans les lignes, l'autre dans les colonnes).</p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+    <deployedseed>1355139652</deployedseed>
+    <deployedseed>1475793692</deployedseed>
+    <deployedseed>1405099942</deployedseed>
+    <deployedseed>727222688</deployedseed>
+    <deployedseed>1764488602</deployedseed>
+    <deployedseed>1053645696</deployedseed>
+    <deployedseed>1288483347</deployedseed>
+    <deployedseed>475981690</deployedseed>
+    <deployedseed>481921617</deployedseed>
+    <deployedseed>1353148035</deployedseed>
+    <deployedseed>866212287</deployedseed>
+    <deployedseed>436996953</deployedseed>
+    <deployedseed>1660075351</deployedseed>
+    <deployedseed>730573743</deployedseed>
+    <deployedseed>904169792</deployedseed>
+    <deployedseed>1115876400</deployedseed>
+    <deployedseed>670670297</deployedseed>
+    <deployedseed>602749870</deployedseed>
+    <deployedseed>404838629</deployedseed>
+    <deployedseed>623713637</deployedseed>
+    <deployedseed>2118629351</deployedseed>
+    <deployedseed>2131612391</deployedseed>
+    <deployedseed>168296508</deployedseed>
+    <deployedseed>45063621</deployedseed>
+    <deployedseed>1495572133</deployedseed>
+    <deployedseed>1742423102</deployedseed>
+    <deployedseed>1402523416</deployedseed>
+    <deployedseed>308469964</deployedseed>
+    <deployedseed>185795511</deployedseed>
+    <deployedseed>1203733811</deployedseed>
+    <deployedseed>1074427199</deployedseed>
+    <deployedseed>549090432</deployedseed>
+    <deployedseed>1337413149</deployedseed>
+    <deployedseed>574739707</deployedseed>
+    <deployedseed>115640412</deployedseed>
+    <deployedseed>1407978313</deployedseed>
+    <deployedseed>256245980</deployedseed>
+    <deployedseed>1768024716</deployedseed>
+    <deployedseed>1008859308</deployedseed>
+    <deployedseed>1605583616</deployedseed>
+    <deployedseed>576027506</deployedseed>
+    <deployedseed>402504456</deployedseed>
+    <deployedseed>150988869</deployedseed>
+    <deployedseed>1300971250</deployedseed>
+    <deployedseed>1710526984</deployedseed>
+    <deployedseed>1642684398</deployedseed>
+    <deployedseed>847948150</deployedseed>
+    <deployedseed>847804899</deployedseed>
+    <deployedseed>1477761924</deployedseed>
+    <deployedseed>1892436444</deployedseed>
+    <deployedseed>72915408</deployedseed>
+    <deployedseed>185086187</deployedseed>
+    <deployedseed>1691708515</deployedseed>
+    <deployedseed>756983254</deployedseed>
+    <deployedseed>717066796</deployedseed>
+    <deployedseed>1512322050</deployedseed>
+    <deployedseed>1626724629</deployedseed>
+    <deployedseed>1221133754</deployedseed>
+    <deployedseed>2096203562</deployedseed>
+    <deployedseed>53795210</deployedseed>
+    <deployedseed>1630946381</deployedseed>
+    <deployedseed>2049744063</deployedseed>
+    <deployedseed>16078295</deployedseed>
+    <deployedseed>135814621</deployedseed>
+    <deployedseed>1034882438</deployedseed>
+    <deployedseed>938211424</deployedseed>
+    <deployedseed>359410580</deployedseed>
+    <deployedseed>278389719</deployedseed>
+    <qtest>
+      <testcase>1</testcase>
+      <description></description>
+      <testinput>
+        <name>ans1</name>
+        <value>ta_1</value>
+      </testinput>
+      <testinput>
+        <name>ans2</name>
+        <value>ta_2</value>
+      </testinput>
+      <testinput>
+        <name>ans3</name>
+        <value>ta_3</value>
+      </testinput>
+      <expected>
+        <name>prt1</name>
+        <expectedscore>1.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt1-1-T</expectedanswernote>
+      </expected>
+      <expected>
+        <name>prt2</name>
+        <expectedscore>1.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt2-1-T</expectedanswernote>
+      </expected>
+      <expected>
+        <name>prt3</name>
+        <expectedscore>1.0000000</expectedscore>
+        <expectedpenalty>0.0000000</expectedpenalty>
+        <expectedanswernote>prt3-1-T</expectedanswernote>
+      </expected>
+    </qtest>
+  </question>
+
+</quiz>

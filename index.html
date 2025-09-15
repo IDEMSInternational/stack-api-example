@@ -24,15 +24,17 @@
 <header id="title-block-header">
 <h1 class="title"><p>Example</p></h1>
 </header>
-<h2>Simple question</h2>
+<h1>Simple question</h1>
 <div class="container-fluid que stack" data-qfile="questions/Partial fraction decomposition.xml">
 </div>
+<h1>Input types</h1>
 <h2>Matrix input</h2>
 <div class="container-fluid que stack" data-qfile="questions/input-sample-questions.xml" data-qname="Matrix">
 </div>
 <h2>Radio input</h2>
 <div class="container-fluid que stack" data-qfile="questions/input-sample-questions.xml" data-qname="Radio">
 </div>
+<h1>Other features</h1>
 <h2>Reveal block</h2>
 <div class="container-fluid que stack" data-qfile="questions/Reveal_block_example.xml">
 </div>
@@ -45,6 +47,14 @@
 <h2>Parsons</h2>
 <div class="container-fluid que stack" data-qfile="questions/Parsons-examples.xml" data-qname="irrational-power-irrational (illustrates re-use of strings)">
 </div>
+<h2>Data download</h2>
+<h3>Using textdownload block</h3>
+<p>A minimal question that helps us test that the we're downloading the dataset for the correct seed.</p>
+<div class="container-fluid que stack" data-qfile="questions/textdownload-minimal.xml"></div>
+<p>A more sensible question</p>
+<div class="container-fluid que stack" data-qfile="questions/textdownload.xml"></div>
+<h3>Using custom scripting</h3>
+<div class="container-fluid que stack" data-qfile="questions/textdownload-scripted.xml"></div>
 <script>
 	var imageDir = ''
 	imgs = document.querySelectorAll("img");
