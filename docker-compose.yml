@@ -11,7 +11,7 @@ services:
       - ./js:/usr/share/nginx/html/js
       - ./questions:/usr/share/nginx/html/questions
   maxima:
-    image: mathinstitut/goemaxima:2024072400-latest
+    image: mathinstitut/goemaxima:2026010500-latest
     tmpfs:
       - "/tmp"
     restart: unless-stopped

@@ -1,11 +1,12 @@
-FROM stackmaths/stackapi:2024072400-latest AS builder
+ARG base_image=stackmaths/stackapi:2026010500-latest
+FROM $base_image AS builder
 WORKDIR /opt/idems
 RUN apt update \
  && apt install --yes --no-install-recommends apache2-dev git
 RUN git clone --depth 1 https://github.com/danghvu/mod_dumpost.git
 RUN cd mod_dumpost && make && apxs -i -A -n dumpost mod_dumpost.la
 
-FROM stackmaths/stackapi:2024072400-latest
+FROM $base_image
 ENV DUMP_POST_LOG_FILE=/var/log/dumpost.log \
     DUMP_POST_MAX_SIZE=256000 \
     STACK_LOG_LEVEL=info
