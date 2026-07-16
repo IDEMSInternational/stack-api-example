@@ -9,6 +9,15 @@ The javascript code in `/web/js` is based on a modification by Sam Fearn of some
 
 Note: The Example question page that ships with the STACK API is found at `http://localhost:3080/stack.php`. 
 
+## Standalone single-file previews
+
+<!-- The following section and the `standalone-preview/` folder were authored with Claude (Anthropic). -->
+
+The setup above serves questions from a running container. If you instead want to turn a
+single question into one self-contained, double-clickable HTML file (no server, question
+XML embedded, rendered/graded in the browser against a CORS-enabled STACK API), see
+[`standalone-preview/`](standalone-preview/README.md).
+
 ## Production remarks
 
 The following changes are referring to `docker-compose.xml`.

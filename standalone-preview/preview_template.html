@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  standalone-preview/preview_template.html
+  Authored with Claude (Anthropic). This whole file is Claude-generated.
+
+  A self-contained, double-clickable STACK question preview. The Moodle question
+  XML is base64-embedded (placeholder {{QUESTION_B64}}) so the file works from
+  file:// with no sibling files; it is rendered, validated and graded in the
+  browser by a CORS-enabled STACK API (placeholder {{API_URL}}).
+
+  Client logic is adapted from Sam Fearn's stackapicalls.js in this repo and the
+  upstream stackjsvle.js (maths/moodle-qtype_stack) — both GPLv3, included below
+  with a CustomEvents no-op shim so stackjsvle runs outside Moodle.
+
+  Do not edit a generated copy by hand; edit this template and re-run
+  build_preview.py. See standalone-preview/README.md.
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{{TITLE}} — STACK preview</title>
+
+<!-- MathJax 3 (same config STACK's own API demo uses) -->
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)'], ['$', '$']],
+    displayMath: [['\\[', '\\]'], ['$$', '$$']],
+    processEscapes: true
+  },
+  options: {
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'button']
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" id="MathJax-script"></script>
+
+<style>
+  :root { --accent:#8b1a1a; --ok:#1a7f37; --line:#e2e2e2; --muted:#666; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         max-width: 820px; margin: 0 auto; padding: 24px; color:#222; line-height:1.5; }
+  header.brand { display:flex; align-items:center; gap:10px; border-bottom:2px solid var(--accent);
+                 padding-bottom:10px; margin-bottom:6px; }
+  header.brand .logo { font-weight:800; color:var(--accent); font-size:20px; letter-spacing:.5px; }
+  header.brand .qname { color:var(--muted); font-size:14px; }
+  .note { color:var(--muted); font-size:13px; margin:4px 0 18px; }
+  .formulation { background:#fafafa; border:1px solid var(--line); border-radius:8px; padding:16px 18px; }
+  .controls { margin:16px 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  button { font:inherit; cursor:pointer; border:1px solid var(--accent); background:var(--accent);
+           color:#fff; padding:8px 14px; border-radius:6px; }
+  button.secondary { background:#fff; color:var(--accent); }
+  button:disabled { opacity:.5; cursor:default; }
+  .filebtn { display:inline-block; font:inherit; cursor:pointer; border:1px dashed var(--accent);
+             background:#fff; color:var(--accent); padding:7px 13px; border-radius:6px; }
+  .loaded { color:var(--muted); font-size:13px; }
+  input[type=text], input:not([type]), textarea, select {
+           font:inherit; padding:3px 6px; border:1px solid #aaa; border-radius:4px; }
+  .stackinputfeedback { display:inline-block; }
+  .stackinputfeedback.validation { margin-left:6px; padding:2px 6px; background:#eef4ff;
+           border:1px solid #cfe0ff; border-radius:4px; font-size:.9em; }
+  #score { font-weight:700; }
+  #score.pass { color:var(--ok); }
+  .feedback { background:#f4f8ff; border-left:4px solid #4a78c9; padding:8px 12px; margin:8px 0; border-radius:0 6px 6px 0; }
+  .feedback.correct { background:#eefaf0; border-color:var(--ok); }
+  .feedback.wrong   { background:#fdf0f0; border-color:var(--accent); }
+  #errors { color:var(--accent); font-weight:600; white-space:pre-wrap; }
+  #correct { background:#fff8e6; border:1px solid #f0dca0; border-radius:6px; padding:8px 12px; }
+  #summary { color:var(--muted); font-size:13px; font-family:ui-monospace, monospace; white-space:pre-wrap; }
+  .spinner { display:none; color:var(--muted); font-size:13px; }
+  .spinner.on { display:inline; }
+  section { margin-top:14px; }
+  h2.sec { font-size:15px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin:0 0 4px; }
+  /* iframe holders for JSXGraph / GeoGebra panels */
+  [id^=stack-iframe-holder] { width:100%; min-height:400px; }
+</style>
+</head>
+<body>
+<header class="brand">
+  <span class="logo">STACK</span>
+  <span class="qname">interactive preview — {{TITLE}}</span>
+</header>
+<p class="note">
+  Live preview served by <code>{{API_URL}}</code>. Answers are validated and graded by that
+  STACK engine in your browser. Nothing is saved. Reopen or regenerate this file after editing the question.
+</p>
+
+<div class="controls" style="margin-top:0">
+  <label class="filebtn">Open a different question XML…
+    <input type="file" id="xmlFile" accept=".xml,.txt" style="display:none">
+  </label>
+  <span class="loaded" id="loadedName"></span>
+</div>
+
+<div id="errors"></div>
+
+<div id="qtext" style="display:none">
+  <div id="output" class="formulation"></div>
+
+  <div class="controls">
+    <button id="submitBtn" onclick="submitAnswers()">Submit answers</button>
+    <button class="secondary" id="fillBtn" onclick="fillCorrect()">Fill in correct answers</button>
+    <button class="secondary" id="variantBtn" onclick="newVariant()" style="display:none">New variant</button>
+    <button class="secondary" id="answerBtn" onclick="toggleAnswer()">Show correct answer</button>
+    <span class="spinner" id="spinner">working…</span>
+    <span id="validity" style="color:var(--accent)"></span>
+  </div>
+
+  <section id="scoreSec" style="display:none">
+    <h2 class="sec">Score</h2>
+    <div id="score"></div>
+  </section>
+
+  <section id="specificfeedback"></section>
+
+  <section id="gfSec" style="display:none">
+    <h2 class="sec">General feedback</h2>
+    <div id="generalfeedback" class="feedback"></div>
+  </section>
+
+  <section id="correctSec" style="display:none">
+    <h2 class="sec">Correct answer</h2>
+    <div id="correct"></div>
+  </section>
+
+  <section id="summarySec" style="display:none">
+    <h2 class="sec">Response summary</h2>
+    <div id="summary"></div>
+  </section>
+</div>
+
+<!-- ===================== CONFIG (injected by the generator) ===================== -->
+<script>
+  // STACK API base URL. Must be a CORS-enabled instance for a file:// page to reach it.
+  const API_URL = "{{API_URL}}";
+  // The whole Moodle question XML, base64-encoded so it survives inlining verbatim.
+  const QUESTION_B64 = "{{QUESTION_B64}}";
+</script>
+
+<!-- ============ stackjsvle.js (iframe bridge for JSXGraph/GeoGebra panels) ============ -->
+<!-- Verbatim from maths/moodle-qtype_stack (GPLv3), plus a CustomEvents no-op shim so it
+     runs outside Moodle. This handles STACK-JS panels that draw into sandboxed iframes. -->
+<script>
+if (typeof CustomEvents === 'undefined') {
+  window.CustomEvents = { notifyFilterContentUpdated: function(){} };
+}
+</script>
+<script>
+/* eslint-disable */
+'use strict';
+let IFRAMES = {};
+let INPUTS = {};
+let INPUTS_INPUT_EVENT = {};
+let DISABLE_CHANGES = false;
+
+function vle_get_element(id) {
+    let candidate = document.getElementById(id);
+    let iter = candidate;
+    while (iter && !iter.classList.contains('formulation')) { iter = iter.parentElement; }
+    if (iter && iter.classList.contains('formulation')) { return candidate; }
+    return null;
+}
+function vle_get_input_element(name, srciframe) {
+    let initialcandidate = document.getElementById(srciframe);
+    let iter = initialcandidate;
+    while (iter && !iter.classList.contains('formulation')) { iter = iter.parentElement; }
+    if (iter && iter.classList.contains('formulation')) {
+        let possible = iter.querySelector('input[id$="_' + name + '"]');
+        if (possible !== null) { return possible; }
+        possible = iter.querySelector('input[id$="_' + name + '_1"][type=radio]');
+        if (possible !== null) { return possible; }
+        possible = iter.querySelector('select[id$="_' + name + '"]');
+        if (possible !== null) { return possible; }
+    }
+    let possible = document.querySelector('.formulation input[id$="_' + name + '"]');
+    if (possible !== null) { return possible; }
+    possible = document.querySelector('.formulation input[id$="_' + name + '_1"][type=radio]');
+    if (possible !== null) { return possible; }
+    possible = document.querySelector('.formulation select[id$="_' + name + '"]');
+    return possible;
+}
+function vle_update_input(inputelement) {
+    inputelement.dispatchEvent(new Event('change'));
+    inputelement.dispatchEvent(new Event('input'));
+}
+function vle_update_dom(modifiedsubtreerootelement) {
+    CustomEvents.notifyFilterContentUpdated(modifiedsubtreerootelement);
+}
+function vle_html_sanitize(src) {
+    let parser = new DOMParser();
+    let doc = parser.parseFromString(src, "text/html");
+    for (let el of doc.querySelectorAll('script, style')) { el.remove(); }
+    for (let el of doc.querySelectorAll('*')) {
+        for (let {name, value} of el.attributes) {
+            if (is_evil_attribute(name, value)) { el.removeAttribute(name); }
+        }
+    }
+    return doc.body;
+}
+function is_evil_attribute(name, value) {
+    const lcname = name.toLowerCase();
+    if (lcname.startsWith('on')) { return true; }
+    if (lcname === 'src' || lcname.endsWith('href')) {
+        const lcvalue = value.replace(/\s+/g, '').toLowerCase();
+        if (lcvalue.includes('javascript:') || lcvalue.includes('data:text')) { return true; }
+    }
+    return false;
+}
+window.addEventListener("message", (e) => {
+    if (!(typeof e.data === 'string' || e.data instanceof String)) { return; }
+    let msg = null;
+    try { msg = JSON.parse(e.data); } catch (e) { return; }
+    if (!(('version' in msg) && msg.version.startsWith('STACK-JS'))) { return; }
+    if (!(('src' in msg) && ('type' in msg) && (msg.src in IFRAMES))) { return; }
+    let element = null;
+    let input = null;
+    let response = { version: 'STACK-JS:1.1.0' };
+    switch (msg.type) {
+    case 'register-input-listener':
+        input = vle_get_input_element(msg.name, msg.src);
+        if (input === null) {
+            response.type = 'error';
+            response.msg = 'Failed to connect to input: "' + msg.name + '"';
+            response.tgt = msg.src;
+            IFRAMES[msg.src].contentWindow.postMessage(JSON.stringify(response), '*');
+            return;
+        }
+        response.type = 'initial-input';
+        response.name = msg.name;
+        response.tgt = msg.src;
+        if (input.nodeName.toLowerCase() === 'select') {
+            response.value = input.value; response['input-type'] = 'select';
+            response['input-readonly'] = input.hasAttribute('disabled');
+        } else if (input.type === 'checkbox') {
+            response.value = input.checked; response['input-type'] = 'checkbox';
+            response['input-readonly'] = input.hasAttribute('disabled');
+        } else {
+            response.value = input.value; response['input-type'] = input.type;
+            response['input-readonly'] = input.hasAttribute('readonly');
+        }
+        if (input.type === 'radio') {
+            response['input-readonly'] = input.hasAttribute('disabled');
+            response.value = '';
+            for (let inp of document.querySelectorAll('input[type=radio][name=' + CSS.escape(input.name) + ']')) {
+                if (inp.checked) { response.value = inp.value; }
+            }
+        }
+        if (input.id in INPUTS) {
+            if (msg.src in INPUTS[input.id]) { return; }
+            if (input.type !== 'radio') { INPUTS[input.id].push(msg.src); }
+            else {
+                let radgroup = document.querySelectorAll('input[type=radio][name=' + CSS.escape(input.name) + ']');
+                for (let inp of radgroup) { INPUTS[inp.id].push(msg.src); }
+            }
+        } else {
+            if (input.type !== 'radio') { INPUTS[input.id] = [msg.src]; }
+            else {
+                let radgroup = document.querySelectorAll('input[type=radio][name=' + CSS.escape(input.name) + ']');
+                for (let inp of radgroup) { INPUTS[inp.id] = [msg.src]; }
+            }
+            if (input.type !== 'radio') {
+                input.addEventListener('change', () => {
+                    if (DISABLE_CHANGES) { return; }
+                    let resp = { version: 'STACK-JS:1.0.0', type: 'changed-input', name: msg.name };
+                    resp['value'] = (input.type === 'checkbox') ? input.checked : input.value;
+                    for (let tgt of INPUTS[input.id]) {
+                        resp['tgt'] = tgt;
+                        IFRAMES[tgt].contentWindow.postMessage(JSON.stringify(resp), '*');
+                    }
+                });
+            } else {
+                let radgroup = document.querySelectorAll('input[type=radio][name=' + CSS.escape(input.name) + ']');
+                radgroup.forEach((inp) => {
+                    inp.addEventListener('change', () => {
+                        if (DISABLE_CHANGES) { return; }
+                        let resp = { version: 'STACK-JS:1.0.0', type: 'changed-input', name: msg.name };
+                        if (inp.checked) { resp.value = inp.value; } else { return; }
+                        for (let tgt of INPUTS[inp.id]) {
+                            resp['tgt'] = tgt;
+                            IFRAMES[tgt].contentWindow.postMessage(JSON.stringify(resp), '*');
+                        }
+                    });
+                });
+            }
+        }
+        if (('track-input' in msg) && msg['track-input'] && input.type !== 'radio') {
+            if (input.id in INPUTS_INPUT_EVENT) {
+                if (msg.src in INPUTS_INPUT_EVENT[input.id]) { return; }
+                INPUTS_INPUT_EVENT[input.id].push(msg.src);
+            } else {
+                INPUTS_INPUT_EVENT[input.id] = [msg.src];
+                input.addEventListener('input', () => {
+                    if (DISABLE_CHANGES) { return; }
+                    let resp = { version: 'STACK-JS:1.0.0', type: 'changed-input', name: msg.name };
+                    resp['value'] = (input.type === 'checkbox') ? input.checked : input.value;
+                    for (let tgt of INPUTS_INPUT_EVENT[input.id]) {
+                        resp['tgt'] = tgt;
+                        IFRAMES[tgt].contentWindow.postMessage(JSON.stringify(resp), '*');
+                    }
+                });
+            }
+        }
+        if (!(msg.src in INPUTS[input.id])) {
+            IFRAMES[msg.src].contentWindow.postMessage(JSON.stringify(response), '*');
+        }
+        break;
+    case 'changed-input':
+        input = vle_get_input_element(msg.name, msg.src);
+        if (input === null) {
+            const ret = { version: 'STACK-JS:1.0.0', type: 'error',
+                msg: 'Failed to modify input: "' + msg.name + '"', tgt: msg.src };
+            IFRAMES[msg.src].contentWindow.postMessage(JSON.stringify(ret), '*');
+            return;
+        }
+        DISABLE_CHANGES = true;
+        if (input.type === 'checkbox') { input.checked = msg.value; } else { input.value = msg.value; }
+        vle_update_input(input);
+        DISABLE_CHANGES = false;
+        response.type = 'changed-input'; response.name = msg.name; response.value = msg.value;
+        for (let tgt of INPUTS[input.id]) {
+            if (tgt !== msg.src) {
+                response.tgt = tgt;
+                IFRAMES[tgt].contentWindow.postMessage(JSON.stringify(response), '*');
+            }
+        }
+        break;
+    case 'toggle-visibility':
+        element = vle_get_element(msg.target);
+        if (element === null) {
+            const ret = { version: 'STACK-JS:1.0.0', type: 'error',
+                msg: 'Failed to find element: "' + msg.target + '"', tgt: msg.src };
+            IFRAMES[msg.src].contentWindow.postMessage(JSON.stringify(ret), '*');
+            return;
+        }
+        if (msg.set === 'show') { element.style.display = 'block'; vle_update_dom(element); }
+        else if (msg.set === 'hide') { element.style.display = 'none'; }
+        break;
+    case 'change-content':
+        element = vle_get_element(msg.target);
+        if (element === null) {
+            response.type = 'error';
+            response.msg = 'Failed to find element: "' + msg.target + '"';
+            response.tgt = msg.src;
+            IFRAMES[msg.src].contentWindow.postMessage(JSON.stringify(response), '*');
+            return;
+        }
+        element.replaceChildren(vle_html_sanitize(msg.content));
+        vle_update_dom(element);
+        break;
+    case 'get-content':
+        element = vle_get_element(msg.target);
+        response.type = 'xfer-content'; response.tgt = msg.src; response.target = msg.target;
+        response.content = null;
+        if (element !== null) { response.content = element.innerHTML; }
+        IFRAMES[msg.src].contentWindow.postMessage(JSON.stringify(response), '*');
+        break;
+    case 'resize-frame':
+        element = IFRAMES[msg.src].parentElement;
+        element.style.width = msg.width; element.style.height = msg.height;
+        IFRAMES[msg.src].style.width = '100%'; IFRAMES[msg.src].style.height = '100%';
+        vle_update_dom(element);
+        break;
+    case 'ping':
+        response.type = 'ping'; response.tgt = msg.src;
+        IFRAMES[msg.src].contentWindow.postMessage(JSON.stringify(response), '*');
+        return;
+    case 'initial-input':
+    case 'error':
+        break;
+    default:
+        response.type = 'error';
+        response.msg = 'Unknown message-type: "' + msg.type + '"';
+        response.tgt = msg.src;
+        IFRAMES[msg.src].contentWindow.postMessage(JSON.stringify(response), '*');
+    }
+});
+function create_iframe(iframeid, content, targetdivid, title, scrolling, evil) {
+    const frm = document.createElement('iframe');
+    frm.id = iframeid;
+    frm.style.width = '100%'; frm.style.height = '100%'; frm.style.border = 0;
+    if (scrolling === false) { frm.scrolling = 'no'; frm.style.overflow = 'hidden'; }
+    else { frm.scrolling = 'yes'; }
+    frm.title = title;
+    frm.referrerpolicy = 'no-referrer';
+    if (!evil) { frm.sandbox = 'allow-scripts allow-downloads'; }
+    frm.srcdoc = content;
+    document.getElementById(targetdivid).replaceChildren(frm);
+    IFRAMES[iframeid] = frm;
+}
+</script>
+
+<!-- ================= preview client (render / validate / grade) ================= -->
+<!-- Adapted from Sam Fearn's stackapicalls.js (IDEMSInternational/stack-api-example, GPLv3):
+     single embedded question, base64 inline XML instead of fetch(), MathJax 3 typesetting. -->
+<script>
+/* eslint-disable */
+const inputPrefix = 'stackapi_input_';
+const feedbackPrefix = 'stackapi_fb_';
+const validationPrefix = 'stackapi_val_';
+const timeOutHandler = {};
+
+let SEEDS = [];       // deployed seeds, if the question randomises
+let seedIndex = 0;    // which variant we are showing
+let QUESTION_XML = '';
+let answerVisible = false;
+let lastInputs = {};  // questioninputs from the most recent render (for Fill correct answers)
+
+function b64ToUtf8(b64) {
+  const bin = atob(b64);
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+// Pull the single STACK question and its deployed seeds out of a raw XML string.
+// Returns the question's name (for the header). Used for both the embedded question
+// and any XML the author later opens with the file picker.
+function loadQuestionFromString(raw) {
+  const doc = new DOMParser().parseFromString(raw, 'text/xml');
+  let node = null;
+  for (const q of doc.getElementsByTagName('question')) {
+    if ((q.getAttribute('type') || '').toLowerCase() === 'stack') { node = q; break; }
+  }
+  if (!node) { throw new Error('No <question type="stack"> found in that XML.'); }
+  QUESTION_XML = '<quiz>\n' + node.outerHTML + '\n</quiz>';
+  SEEDS = Array.from(node.querySelectorAll('deployedseed')).map(s => parseInt(s.textContent, 10));
+  seedIndex = 0;
+  const nm = node.querySelector('name text');
+  return nm ? nm.textContent.trim() : '';
+}
+function loadQuestion() { return loadQuestionFromString(b64ToUtf8(QUESTION_B64)); }
+
+function currentSeed() {
+  return SEEDS.length ? SEEDS[seedIndex % SEEDS.length] : null;
+}
+
+function spinner(on) {
+  document.getElementById('spinner').classList.toggle('on', on);
+  document.getElementById('submitBtn').disabled = on;
+}
+
+// Collect the student's current answers into the API's {inputName: value} map.
+function collectAnswers() {
+  const res = {};
+  const scan = (nodes) => {
+    for (const el of nodes) {
+      if (el.name && el.name.indexOf(inputPrefix) === 0 && !el.name.endsWith('_val')) {
+        if (el.type === 'checkbox' || el.type === 'radio') {
+          if (el.checked) { res[el.name.slice(inputPrefix.length)] = el.value; }
+        } else {
+          res[el.name.slice(inputPrefix.length)] = el.value;
+        }
+      }
+    }
+  };
+  scan(document.getElementsByTagName('input'));
+  scan(document.getElementsByTagName('textarea'));
+  scan(document.getElementsByTagName('select'));
+  return res;
+}
+
+function baseData() {
+  return {
+    questionDefinition: QUESTION_XML,
+    seed: currentSeed(),
+    answers: collectAnswers(),
+    renderInputs: inputPrefix,
+    readOnly: false
+  };
+}
+
+async function apiPost(route, body) {
+  const r = await fetch(API_URL.replace(/\/$/, '') + '/' + route, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept-Language': 'en' },
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+function showError(e) {
+  const corsHint = ' — if this is a CORS/network error, the API at ' + API_URL +
+    ' may not allow cross-origin requests from a file:// page. Use a CORS-enabled STACK instance, ' +
+    'or serve this file over http (e.g. `python3 -m http.server` in this folder).';
+  document.getElementById('errors').innerText = (e && e.message ? e.message : e) + corsHint;
+  spinner(false);
+}
+
+// Server-rendered plot images (matplotlib/gnuplot). The STACK API spec serves these at
+// /plots/<file>; some deployments instead use /plot.php/<file>. If plot images 404 on
+// your endpoint, switch PLOT_PATH. (JSXGraph/GeoGebra panels don't use this — they come
+// through iframes via cors.php.)
+const PLOT_PATH = '/plots/';
+function plotUrl(file) { return API_URL.replace(/\/$/, '') + PLOT_PATH + file; }
+
+function renameIframeHolders() {
+  for (const iframe of document.querySelectorAll('[id^=stack-iframe-holder]:not([id$=old])')) {
+    iframe.id = iframe.id + '_old';
+  }
+}
+function createIframes(iframes) {
+  const corsFragment = '/cors.php?name=';
+  for (const iframe of (iframes || [])) {
+    create_iframe(iframe[0], iframe[1].replaceAll(corsFragment, API_URL.replace(/\/$/, '') + corsFragment),
+                  ...iframe.slice(2));
+  }
+}
+function replaceFeedbackTags(text) {
+  let result = text;
+  const tags = text.match(/\[\[feedback:.*?\]\]/g);
+  if (tags) { for (const tag of tags) {
+    result = result.replace(tag, "<div name='" + feedbackPrefix + tag.slice(11, -2) + "'></div>");
+  } }
+  return result;
+}
+
+// ---- render ----
+async function render() {
+  spinner(true);
+  document.getElementById('errors').innerText = '';
+  try {
+    const data = baseData();
+    delete data.answers;
+    const json = await apiPost('render', data);
+    if (json.message) { showError({ message: json.message }); return; }
+
+    renameIframeHolders();
+    let question = json.questionrender;
+    const inputs = json.questioninputs || {};
+    lastInputs = inputs;
+    let correct = '';
+
+    for (const [name, input] of Object.entries(inputs)) {
+      question = question.replace('[[input:' + name + ']]', input.render);
+      question = question.replace('[[validation:' + name + ']]',
+        "<span name='" + validationPrefix + name + "' class='stackinputfeedback empty'></span>");
+      if (input.samplesolutionrender && name !== 'remember') {
+        correct += '<p>A correct answer is: ';
+        correct += (input.samplesolutionrender.substring(0, 1) === '<')
+          ? input.samplesolutionrender : '\\[{' + input.samplesolutionrender + '}\\]';
+        if (input.samplesolution) {
+          let typed = '';
+          for (const [k, sol] of Object.entries(input.samplesolution)) {
+            if (k.indexOf('_val') === -1 && !(typeof sol === 'string' && sol.startsWith('[[{"used":'))) {
+              typed += "<span class='correct-answer'>" + String(sol).replace(/\n/g, '<br>') + '</span> ';
+            }
+          }
+          if (typed) { correct += ', typed as: ' + typed; }
+        }
+        correct += '.</p>';
+      } else if (name !== 'remember' && input.samplesolution) {
+        for (const sol of Object.values(input.samplesolution)) {
+          if (input.configuration && input.configuration.options) {
+            correct += "<p class='correct-answer'>" + input.configuration.options[sol] + '</p>';
+          }
+        }
+      }
+    }
+
+    for (const [name, file] of Object.entries(json.questionassets || {})) {
+      question = question.replaceAll(name, plotUrl(file));
+      if (json.questionsamplesolutiontext) json.questionsamplesolutiontext = json.questionsamplesolutiontext.replaceAll(name, plotUrl(file));
+      correct = correct.replaceAll(name, plotUrl(file));
+    }
+
+    question = replaceFeedbackTags(question);
+    document.getElementById('output').innerHTML = question;
+    document.getElementById('qtext').style.display = 'block';
+
+    // live validation on input, 1s after the student stops typing
+    for (const name of Object.keys(inputs)) {
+      for (const el of document.querySelectorAll('[name^=' + CSS.escape(inputPrefix + name) + ']')) {
+        el.oninput = (ev) => {
+          if (timeOutHandler[ev.target.id]) { clearTimeout(timeOutHandler[ev.target.id]); }
+          timeOutHandler[ev.target.id] = setTimeout(() => validate(ev.target), 1000);
+        };
+      }
+    }
+
+    // general feedback / correct answer, reset per render
+    const gf = json.questionsamplesolutiontext;
+    document.getElementById('generalfeedback').innerHTML = gf ? replaceFeedbackTags(gf) : '';
+    document.getElementById('correct').innerHTML = correct;
+    document.getElementById('scoreSec').style.display = 'none';
+    document.getElementById('gfSec').style.display = 'none';
+    document.getElementById('summarySec').style.display = 'none';
+    document.getElementById('correctSec').style.display = 'none';
+    answerVisible = false;
+    document.getElementById('answerBtn').innerText = 'Show correct answer';
+    document.getElementById('specificfeedback').innerHTML = '';
+    document.getElementById('validity').innerText = '';
+
+    document.getElementById('variantBtn').style.display = (SEEDS.length > 1) ? 'inline-block' : 'none';
+
+    createIframes(json.iframes);
+    spinner(false);
+    await MathJax.typesetPromise();
+  } catch (e) { showError(e); }
+}
+
+// ---- validate a single input ----
+async function validate(element) {
+  try {
+    const name = element.name.slice(inputPrefix.length).split('_', 1)[0];
+    const data = baseData();
+    data.inputName = name;
+    const json = await apiPost('validate', data);
+    if (json.message) { document.getElementById('errors').innerText = json.message; return; }
+    renameIframeHolders();
+    const html = (json.validation !== undefined) ? json.validation : json.Validation;
+    const holder = document.getElementsByName(validationPrefix + name)[0];
+    if (holder) {
+      holder.innerHTML = html || '';
+      holder.classList.toggle('validation', !!html);
+      holder.classList.toggle('empty', !html);
+    }
+    createIframes(json.iframes);
+    await MathJax.typesetPromise();
+  } catch (e) { showError(e); }
+}
+
+// ---- grade ----
+async function submitAnswers() {
+  if (!document.getElementById('output').innerText) { return; }
+  spinner(true);
+  // clear previous feedback
+  document.getElementById('specificfeedback').innerHTML = '';
+  document.getElementById('summary').innerText = '';
+  document.getElementById('summarySec').style.display = 'none';
+  document.getElementById('scoreSec').style.display = 'none';
+  document.getElementById('validity').innerText = '';
+  for (const el of document.querySelectorAll('[name^=' + feedbackPrefix + ']')) {
+    el.innerHTML = ''; el.classList.remove('feedback');
+  }
+  try {
+    const json = await apiPost('grade', baseData());
+    if (json.message) { showError({ message: json.message }); return; }
+    if (!json.isgradable) {
+      document.getElementById('validity').innerText = ' Please enter valid answers for all parts.';
+      spinner(false);
+      return;
+    }
+    renameIframeHolders();
+    const total = json.scoreweights ? json.scoreweights.total : 1;
+    const scoreEl = document.getElementById('score');
+    const marks = (json.score * total);
+    scoreEl.innerText = marks.toFixed(2) + ' out of ' + total;
+    scoreEl.classList.toggle('pass', Math.abs(json.score - 1) < 1e-9);
+    document.getElementById('scoreSec').style.display = 'block';
+
+    if (json.responsesummary) {
+      document.getElementById('summary').innerText = json.responsesummary;
+      document.getElementById('summarySec').style.display = 'block';
+    }
+
+    // specific feedback
+    const sf = document.getElementById('specificfeedback');
+    if (json.specificfeedback) {
+      let txt = json.specificfeedback;
+      for (const [name, file] of Object.entries(json.gradingassets || {})) { txt = txt.replaceAll(name, plotUrl(file)); }
+      sf.innerHTML = replaceFeedbackTags(txt);
+      sf.classList.add('feedback');
+    } else { sf.classList.remove('feedback'); }
+
+    // per-PRT feedback
+    for (let [name, fb] of Object.entries(json.prts || {})) {
+      for (const [n, file] of Object.entries(json.gradingassets || {})) { fb = fb.replaceAll(n, plotUrl(file)); }
+      const els = document.getElementsByName(feedbackPrefix + name);
+      if (els.length) {
+        if (json.scores && json.scoreweights && json.scores[name] !== undefined && json.scoreweights[name]) {
+          fb += '<div style="margin-top:4px;color:#555;font-size:.9em">Marks for this part: ' +
+            (json.scores[name] * json.scoreweights[name] * total).toFixed(2) + ' / ' +
+            (json.scoreweights[name] * total).toFixed(2) + '.</div>';
+        }
+        els[0].innerHTML = fb;
+        els[0].classList.toggle('feedback', !!fb);
+      }
+    }
+    // general feedback becomes visible after grading
+    if (document.getElementById('generalfeedback').innerHTML.trim()) {
+      document.getElementById('gfSec').style.display = 'block';
+    }
+    createIframes(json.iframes);
+    spinner(false);
+    await MathJax.typesetPromise();
+  } catch (e) { showError(e); }
+}
+
+// Populate the input fields with STACK's model answer (from the render response),
+// so the author can submit and confirm the question scores full marks.
+function fillCorrect() {
+  if (!lastInputs || !Object.keys(lastInputs).length) { return; }
+  for (const [name, input] of Object.entries(lastInputs)) {
+    const sol = input.samplesolution;
+    if (!sol || name === 'remember') { continue; }
+    const type = input.configuration && input.configuration.type;
+    const base = inputPrefix + name;
+    if (type === 'radio') {
+      const val = String(Object.values(sol)[0]);
+      for (const r of document.querySelectorAll('input[type=radio][name="' + base + '"]')) {
+        r.checked = (r.value === val);
+        if (r.checked) { r.dispatchEvent(new Event('change')); }
+      }
+    } else if (type === 'checkbox') {
+      const wanted = new Set(Object.values(sol).map(String));
+      for (const c of document.querySelectorAll('input[type=checkbox][name^="' + base + '"]')) {
+        c.checked = wanted.has(c.value);
+        c.dispatchEvent(new Event('change'));
+      }
+    } else if (type === 'dropdown') {
+      const sel = document.querySelector('select[name="' + base + '"]');
+      if (sel) { sel.value = String(Object.values(sol)[0]); sel.dispatchEvent(new Event('change')); }
+    } else {
+      // text-like inputs; may have several sub-fields (e.g. matrix entries)
+      for (const [k, v] of Object.entries(sol)) {
+        if (k.indexOf('_val') !== -1) { continue; }
+        let field = null;
+        for (const nm of [base + k, base + '_' + k, base]) {
+          field = document.querySelector('[name="' + nm + '"]');
+          if (field) { break; }
+        }
+        if (field) { field.value = v; field.dispatchEvent(new Event('input')); }
+      }
+    }
+  }
+  MathJax.typesetPromise();
+}
+
+// Open a different question XML with the file picker (reads locally, no upload/network).
+function handleUpload(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) { return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      document.getElementById('errors').innerText = '';
+      const nm = loadQuestionFromString(String(reader.result));
+      document.getElementById('loadedName').innerText =
+        'Loaded ' + file.name + (nm ? ' — “' + nm + '”' : '');
+      lastInputs = {};
+      render();
+    } catch (e) {
+      document.getElementById('errors').innerText = e.message;
+    }
+  };
+  reader.readAsText(file);
+}
+
+function newVariant() {
+  seedIndex = (seedIndex + 1) % SEEDS.length;
+  render();
+}
+
+function toggleAnswer() {
+  answerVisible = !answerVisible;
+  document.getElementById('correctSec').style.display = answerVisible ? 'block' : 'none';
+  document.getElementById('answerBtn').innerText = answerVisible ? 'Hide correct answer' : 'Show correct answer';
+  if (answerVisible) { MathJax.typesetPromise(); }
+}
+
+// go
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('xmlFile').addEventListener('change', handleUpload);
+  try { loadQuestion(); render(); }
+  catch (e) { document.getElementById('errors').innerText = e.message; }
+});
+</script>
+</body>
+</html>
